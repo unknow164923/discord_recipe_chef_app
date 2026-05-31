@@ -1,425 +1,748 @@
-
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Chef — Générateur de recettes de serveurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
-  :root { --orange: #E8650A; --orange-light: #FAEEDA; --orange-mid: #EF9F27; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); background: transparent; }
-
-  .app-shell {
-    background: var(--color-background-primary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    min-height: 540px;
-    display: flex;
-    flex-direction: column;
+  :root {
+    --amber-50: #FAEEDA;
+    --amber-100: #FAC775;
+    --amber-400: #EF9F27;
+    --amber-600: #BA7517;
+    --amber-800: #633806;
+    --amber-900: #412402;
+    --bg: #FDF8F0;
+    --surface: #FFFFFF;
+    --surface2: #F5EFE3;
+    --text: #1A1208;
+    --text-muted: #7A6040;
+    --border: rgba(186,117,23,0.18);
+    --border-strong: rgba(186,117,23,0.35);
+    --radius: 12px;
+    --radius-sm: 8px;
   }
 
-  .app-header {
-    background: #BA7517;
-    padding: 1rem 1.5rem;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(239,159,39,0.12) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  .app-logo {
-    width: 40px; height: 40px;
-    background: #EF9F27;
-    border-radius: var(--border-radius-md);
+  .logo {
+    width: 38px; height: 38px;
+    background: var(--amber-600);
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
-  .app-logo i { font-size: 22px; color: #412402; }
-  .app-title { color: #FAEEDA; font-size: 18px; font-weight: 500; }
-  .app-subtitle { color: #FAC775; font-size: 12px; }
-
-  .nav-tabs {
+  .logo i { font-size: 20px; color: var(--amber-50); }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--amber-900);
+    letter-spacing: -0.3px;
+  }
+  .header-tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: -4px;
+  }
+  .header-right {
+    margin-left: auto;
     display: flex;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
-    background: var(--color-background-secondary);
-    padding: 0 1rem;
+    align-items: center;
+    gap: 8px;
   }
-  .nav-tab {
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -0.5px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .nav-tab.active {
-    color: #BA7517;
-    border-bottom-color: #BA7517;
+  .badge-free {
+    background: var(--amber-50);
+    color: var(--amber-800);
+    border: 1px solid var(--amber-100);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
     font-weight: 500;
   }
-  .nav-tab i { font-size: 15px; }
 
-  .content { flex: 1; padding: 1.25rem; overflow-y: auto; }
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
 
-  .section { display: none; }
-  .section.active { display: block; }
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr; }
+    header { padding: 0 1rem; }
+    .header-tagline { display: none; }
+  }
 
-  .prompt-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--surface2);
+  }
+  .card-header i { font-size: 15px; color: var(--amber-600); }
+  .card-body { padding: 14px 16px; }
+
+  /* prompt area */
   .prompt-area {
     width: 100%;
-    min-height: 90px;
+    min-height: 100px;
     padding: 10px 12px;
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     font-size: 14px;
-    font-family: var(--font-sans);
-    color: var(--color-text-primary);
-    background: var(--color-background-primary);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
     resize: vertical;
+    line-height: 1.6;
+    transition: border-color 0.2s;
   }
-  .prompt-area:focus { outline: none; border-color: #BA7517; }
+  .prompt-area:focus { outline: none; border-color: var(--amber-600); }
+  .prompt-area::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-  .examples-row {
-    display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px;
+  /* examples */
+  .examples-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 6px;
   }
+  .examples-list { display: flex; flex-direction: column; gap: 4px; }
   .example-chip {
-    background: #FAEEDA;
-    color: #633806;
-    border: 0.5px solid #FAC775;
-    border-radius: 20px;
-    padding: 4px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
     font-size: 12px;
+    color: var(--text-muted);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s;
   }
-  .example-chip:hover { background: #FAC775; }
+  .example-chip:hover {
+    background: var(--amber-50);
+    border-color: var(--amber-100);
+    color: var(--amber-800);
+  }
 
+  /* cook button */
   .btn-cook {
-    background: #BA7517;
-    color: #FAEEDA;
+    margin-top: 12px;
+    width: 100%;
+    background: var(--amber-600);
+    color: var(--amber-50);
     border: none;
-    border-radius: var(--border-radius-md);
-    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    padding: 11px 16px;
     font-size: 14px;
     font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
     cursor: pointer;
-    display: flex; align-items: center; gap: 8px;
-    width: 100%;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
+    transition: background 0.2s, transform 0.1s;
   }
-  .btn-cook:hover { background: #854F0B; }
-  .btn-cook:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
+  .btn-cook:hover { background: var(--amber-800); }
+  .btn-cook:active { transform: scale(0.98); }
+  .btn-cook:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; transform: none; }
   .btn-cook i { font-size: 16px; }
 
-  .recipe-output {
-    display: none;
-    margin-top: 1rem;
+  /* tips cards */
+  .tip-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
   }
-  .recipe-output.visible { display: block; }
+  .tip-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .tip-icon { color: var(--amber-600); flex-shrink: 0; font-size: 16px; margin-top: 1px; }
+  .tip-title { font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .tip-body { color: var(--text-muted); line-height: 1.5; font-size: 12px; }
 
-  .recipe-card {
-    background: var(--color-background-primary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-  }
-  .recipe-card-header {
-    background: #FAEEDA;
-    padding: 12px 16px;
-    border-bottom: 0.5px solid #FAC775;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .recipe-card-header i { font-size: 20px; color: #633806; }
-  .recipe-card-title { font-size: 16px; font-weight: 500; color: #412402; }
-  .recipe-card-body { padding: 14px 16px; }
-
-  .loading-indicator {
-    display: none;
+  /* history */
+  .history-empty { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 13px; }
+  .history-empty i { font-size: 28px; display: block; margin-bottom: 6px; opacity: 0.35; }
+  .history-item {
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 16px;
-    color: var(--color-text-secondary);
-    font-size: 14px;
+    gap: 8px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    margin-bottom: 2px;
   }
-  .loading-indicator.visible { display: flex; }
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid var(--color-border-tertiary);
-    border-top-color: #BA7517;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .history-item:hover { background: var(--amber-50); }
+  .history-item i { font-size: 15px; color: var(--amber-600); }
+  .history-item-text { flex: 1; color: var(--text); }
+  .history-item-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 
-  .recipe-text {
-    font-size: 14px;
-    line-height: 1.7;
-    color: var(--color-text-primary);
-    white-space: pre-wrap;
-  }
-  .recipe-text h1 { font-size: 17px; font-weight: 500; color: #412402; margin: 0 0 8px; }
-  .recipe-text h2 { font-size: 15px; font-weight: 500; color: #633806; margin: 14px 0 6px; border-bottom: 0.5px solid #FAC775; padding-bottom: 4px; }
-  .recipe-text h3 { font-size: 14px; font-weight: 500; color: #854F0B; margin: 10px 0 4px; }
-  .recipe-text p { margin: 6px 0; }
-  .recipe-text ul { padding-left: 18px; margin: 4px 0; }
-  .recipe-text li { margin: 3px 0; }
-  .recipe-text code { background: #FAEEDA; color: #633806; padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; }
-  .recipe-text blockquote { border-left: 3px solid #FAC775; padding-left: 10px; color: var(--color-text-secondary); margin: 6px 0; font-size: 13px; }
-  .recipe-text strong { font-weight: 500; }
-  .recipe-text hr { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 12px 0; }
+  /* ── MAIN CONTENT ── */
+  .main-col { display: flex; flex-direction: column; gap: 1rem; }
 
-  .tips-grid {
+  /* hero when empty */
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .hero-icon {
+    width: 64px; height: 64px;
+    background: var(--amber-50);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    border: 1px solid var(--amber-100);
+  }
+  .hero-icon i { font-size: 32px; color: var(--amber-600); }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--amber-900);
+    margin-bottom: 8px;
+  }
+  .hero p { font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 380px; margin: 0 auto; }
+
+  .steps-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    margin-top: 4px;
+    margin-top: 2rem;
+    text-align: left;
   }
-  .tip-card {
-    background: var(--color-background-secondary);
-    border-radius: var(--border-radius-md);
+  @media (max-width: 700px) { .steps-row { grid-template-columns: 1fr; } }
+  .step-card {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
     padding: 12px;
     font-size: 13px;
   }
-  .tip-card-icon { font-size: 20px; margin-bottom: 6px; color: #BA7517; }
-  .tip-card-title { font-weight: 500; font-size: 13px; color: var(--color-text-primary); margin-bottom: 4px; }
-  .tip-card-body { color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }
-
-  .history-list { display: flex; flex-direction: column; gap: 8px; }
-  .history-item {
-    background: var(--color-background-secondary);
-    border-radius: var(--border-radius-md);
-    padding: 10px 14px;
-    cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
+  .step-num {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--amber-600);
+    margin-bottom: 4px;
   }
-  .history-item:hover { background: #FAEEDA; }
-  .history-item i { font-size: 16px; color: #BA7517; }
-  .history-item-text { font-size: 13px; color: var(--color-text-primary); flex: 1; }
-  .history-item-time { font-size: 11px; color: var(--color-text-secondary); }
-  .empty-state { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 13px; }
-  .empty-state i { font-size: 32px; display: block; margin-bottom: 8px; color: var(--color-border-tertiary); }
+  .step-card p { color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-top: 3px; }
+
+  /* loading */
+  .loading-bar {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    align-items: center;
+    gap: 14px;
+  }
+  .loading-bar.visible { display: flex; }
+  .spinner {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--amber-600);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--text-muted); }
+  .loading-text strong { color: var(--text); font-weight: 500; }
+
+  /* recipe output */
+  .recipe-output {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .recipe-output.visible { display: block; }
+  .recipe-output-header {
+    background: linear-gradient(135deg, var(--amber-900), var(--amber-800));
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .recipe-output-header i { font-size: 20px; color: var(--amber-100); }
+  .recipe-output-header span { font-size: 14px; font-weight: 500; color: var(--amber-50); }
+
+  .recipe-body { padding: 1.5rem; }
+
+  /* markdown rendered recipe */
+  .recipe-md { font-size: 14px; line-height: 1.75; color: var(--text); }
+  .recipe-md h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--amber-900);
+    margin: 0 0 6px;
+    border-bottom: 2px solid var(--amber-100);
+    padding-bottom: 8px;
+  }
+  .recipe-md h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--amber-800);
+    margin: 18px 0 8px;
+    padding: 6px 12px;
+    background: var(--amber-50);
+    border-left: 3px solid var(--amber-600);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .recipe-md h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--amber-800);
+    margin: 14px 0 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .recipe-md h3::before {
+    content: '';
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--amber-600);
+    display: inline-block;
+  }
+  .recipe-md p { margin: 6px 0; color: var(--text); }
+  .recipe-md ul { padding-left: 20px; margin: 6px 0; }
+  .recipe-md li { margin: 4px 0; color: var(--text); }
+  .recipe-md code {
+    background: var(--amber-50);
+    color: var(--amber-800);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border: 1px solid var(--amber-100);
+  }
+  .recipe-md blockquote {
+    border-left: 3px solid var(--amber-100);
+    padding: 8px 14px;
+    background: var(--surface2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin: 8px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+    line-height: 1.8;
+  }
+  .recipe-md hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .recipe-md strong { font-weight: 500; }
+
+  /* copy button */
+  .recipe-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 1.5rem 1.5rem;
+  }
+  .btn-action {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-action:hover { background: var(--amber-50); color: var(--amber-800); border-color: var(--amber-100); }
+  .btn-action i { font-size: 14px; }
 </style>
+</head>
+<body>
 
-<h2 class="sr-only">Application Chef Discord — Générateur de recettes de serveurs</h2>
-
-<div class="app-shell">
-  <div class="app-header">
-    <div class="app-logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
-    <div>
-      <div class="app-title">Discord Chef</div>
-      <div class="app-subtitle">Votre assistant création de serveurs</div>
-    </div>
+<header>
+  <div class="logo"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+  <div>
+    <div class="header-title">Discord Chef</div>
+    <div class="header-tagline">Générateur de recettes de serveurs</div>
   </div>
-
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="switchTab('create')" id="tab-create">
-      <i class="ti ti-sparkles" aria-hidden="true"></i> Nouvelle recette
-    </div>
-    <div class="nav-tab" onclick="switchTab('tips')" id="tab-tips">
-      <i class="ti ti-bulb" aria-hidden="true"></i> Conseils pro
-    </div>
-    <div class="nav-tab" onclick="switchTab('history')" id="tab-history">
-      <i class="ti ti-history" aria-hidden="true"></i> Historique
-    </div>
+  <div class="header-right">
+    <span class="badge-free">✦ Gratuit</span>
   </div>
+</header>
 
-  <div class="content">
+<div class="container">
 
-    <div class="section active" id="section-create">
-      <p class="prompt-label">Décrivez votre idée de serveur Discord :</p>
-      <textarea class="prompt-area" id="prompt-input" placeholder="Ex: Un serveur pour une communauté de gamers passionnés de RPG, avec un système de niveaux et des salons pour chaque jeu..."></textarea>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
 
-      <div class="examples-row">
-        <div class="example-chip" onclick="setPrompt('Un serveur gaming RPG avec système de niveaux')">🎮 Gaming RPG</div>
-        <div class="example-chip" onclick="setPrompt('Un serveur étudiant pour réviser ensemble et partager des cours')">📚 Études</div>
-        <div class="example-chip" onclick="setPrompt('Un serveur communauté artistique pour partager des créations')">🎨 Art & Créa</div>
-        <div class="example-chip" onclick="setPrompt('Un serveur pour une startup tech avec équipes et projets')">💼 Startup</div>
-        <div class="example-chip" onclick="setPrompt('Un serveur anime avec salons par série et système de rôles')">🌸 Anime</div>
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-sparkles" aria-hidden="true"></i>
+        Votre idée de serveur
       </div>
+      <div class="card-body">
+        <textarea class="prompt-area" id="prompt-input"
+          placeholder="Décrivez votre idée... Ex: Un serveur gaming RPG avec système de niveaux et salons par jeu"></textarea>
 
-      <button class="btn-cook" id="btn-cook" onclick="generateRecipe()">
-        <i class="ti ti-flame" aria-hidden="true"></i> Préparer la recette ↗
-      </button>
-
-      <div class="loading-indicator" id="loading">
-        <div class="spinner"></div>
-        <span>Le chef prépare votre recette...</span>
-      </div>
-
-      <div class="recipe-output" id="recipe-output">
-        <div class="recipe-card">
-          <div class="recipe-card-header">
-            <i class="ti ti-book" aria-hidden="true"></i>
-            <span class="recipe-card-title">Votre recette est prête !</span>
+        <div class="examples-label">Exemples rapides</div>
+        <div class="examples-list">
+          <div class="example-chip" onclick="setPrompt('Un serveur gaming RPG avec système de niveaux et salons par jeu')">
+            🎮 Gaming RPG
           </div>
-          <div class="recipe-card-body">
-            <div class="recipe-text" id="recipe-text"></div>
+          <div class="example-chip" onclick="setPrompt('Un serveur étudiant pour réviser ensemble et partager des cours')">
+            📚 Communauté étudiante
+          </div>
+          <div class="example-chip" onclick="setPrompt('Un serveur communauté artistique pour partager des créations')">
+            🎨 Art & Créativité
+          </div>
+          <div class="example-chip" onclick="setPrompt('Un serveur pour une startup tech avec équipes et projets')">
+            💼 Startup / Équipe
+          </div>
+          <div class="example-chip" onclick="setPrompt('Un serveur anime avec salons par série et système de rôles')">
+            🌸 Communauté Anime
+          </div>
+          <div class="example-chip" onclick="setPrompt('Un serveur pour musiciens avec salons par genre et partage de projets')">
+            🎵 Musique & Création
           </div>
         </div>
+
+        <button class="btn-cook" id="btn-cook" onclick="generateRecipe()">
+          <i class="ti ti-flame" aria-hidden="true"></i>
+          Préparer la recette
+        </button>
       </div>
     </div>
 
-    <div class="section" id="section-tips">
-      <div class="tips-grid">
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
-          <div class="tip-card-title">Rôles bien définis</div>
-          <div class="tip-card-body">Créez toujours Admin, Modérateur, Membre vérifié et Nouveau. Ça structure la hiérarchie dès le départ.</div>
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-bulb" aria-hidden="true"></i>
+        Conseils du chef
+      </div>
+      <div class="card-body" style="padding: 10px 16px;">
+        <div class="tip-item">
+          <i class="ti ti-users tip-icon" aria-hidden="true"></i>
+          <div>
+            <div class="tip-title">Rôles bien définis</div>
+            <div class="tip-body">Admin, Modérateur, Membre vérifié et Nouveau. Hiérarchie claire dès le départ.</div>
+          </div>
         </div>
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>
-          <div class="tip-card-title">Salon de vérification</div>
-          <div class="tip-card-body">Forcez les nouveaux à lire le règlement et réagir avec un emoji avant d'accéder au serveur.</div>
+        <div class="tip-item">
+          <i class="ti ti-lock tip-icon" aria-hidden="true"></i>
+          <div>
+            <div class="tip-title">Salon de vérification</div>
+            <div class="tip-body">Règlement + réaction emoji avant l'accès. Filtre les bots et les indésirables.</div>
+          </div>
         </div>
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-robot" aria-hidden="true"></i></div>
-          <div class="tip-card-title">3 bots suffisent</div>
-          <div class="tip-card-body">MEE6 (niveaux), Carl-bot (réactions de rôles) et Ticket Tool (support). Évitez la surcharge de bots.</div>
+        <div class="tip-item">
+          <i class="ti ti-robot tip-icon" aria-hidden="true"></i>
+          <div>
+            <div class="tip-title">3 bots suffisent</div>
+            <div class="tip-body">MEE6 + Carl-bot + Ticket Tool. Évitez la surcharge.</div>
+          </div>
         </div>
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-category" aria-hidden="true"></i></div>
-          <div class="tip-card-title">Max 6 catégories</div>
-          <div class="tip-card-body">Au-delà de 6 catégories, les membres se perdent. Fusionnez les salons similaires.</div>
-        </div>
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-message-circle" aria-hidden="true"></i></div>
-          <div class="tip-card-title">Message de bienvenue</div>
-          <div class="tip-card-body">Personnalisez le message avec le nom du serveur, les règles clés et le canal d'introduction.</div>
-        </div>
-        <div class="tip-card">
-          <div class="tip-card-icon"><i class="ti ti-star" aria-hidden="true"></i></div>
-          <div class="tip-card-title">Canal mise en avant</div>
-          <div class="tip-card-body">Un salon #mise-en-avant pour les meilleurs posts booste l'engagement et valorise les membres actifs.</div>
+        <div class="tip-item">
+          <i class="ti ti-category tip-icon" aria-hidden="true"></i>
+          <div>
+            <div class="tip-title">Max 6 catégories</div>
+            <div class="tip-body">Au-delà, les membres se perdent. Fusionnez les salons similaires.</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="section" id="section-history">
-      <div id="history-list" class="history-list">
-        <div class="empty-state">
-          <i class="ti ti-history" aria-hidden="true"></i>
-          Vos recettes générées apparaîtront ici
+    <div class="card">
+      <div class="card-header">
+        <i class="ti ti-history" aria-hidden="true"></i>
+        Historique de session
+      </div>
+      <div class="card-body" style="padding: 8px 12px;" id="history-container">
+        <div class="history-empty">
+          <i class="ti ti-notebook" aria-hidden="true"></i>
+          Vos recettes apparaîtront ici
         </div>
       </div>
     </div>
 
-  </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-col">
+
+    <div id="hero" class="hero">
+      <div class="hero-icon"><i class="ti ti-chef-hat" aria-hidden="true"></i></div>
+      <h1>Chef, oui Chef !</h1>
+      <p>Décrivez votre idée de serveur Discord et recevez une recette complète et structurée pour le créer de A à Z.</p>
+      <div class="steps-row">
+        <div class="step-card">
+          <div class="step-num">① DÉCRIVEZ</div>
+          <strong>Votre idée</strong>
+          <p>Communauté, thème, ambiance souhaitée</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">② RECEVEZ</div>
+          <strong>La recette</strong>
+          <p>Rôles, bots, salons, permissions étape par étape</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">③ CRÉEZ</div>
+          <strong>Votre serveur</strong>
+          <p>Suivez la recette et lancez votre communauté</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-bar" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Le chef prépare votre recette... <strong>Quelques secondes</strong></div>
+    </div>
+
+    <div class="recipe-output" id="recipe-output">
+      <div class="recipe-output-header">
+        <i class="ti ti-book" aria-hidden="true"></i>
+        <span>Votre recette est prête !</span>
+      </div>
+      <div class="recipe-body">
+        <div class="recipe-md" id="recipe-text"></div>
+      </div>
+      <div class="recipe-actions">
+        <button class="btn-action" onclick="copyRecipe()">
+          <i class="ti ti-copy" aria-hidden="true"></i> Copier
+        </button>
+        <button class="btn-action" onclick="resetAll()">
+          <i class="ti ti-plus" aria-hidden="true"></i> Nouvelle recette
+        </button>
+      </div>
+    </div>
+
+  </main>
 </div>
 
 <script>
-let history = [];
+  const GROK_KEY = 'xai-BTgxYroDmeNq8q3sidM2pU51JSRR6BZn4aglxxoaUAlyhyTKTYbuiwFFjahwDcSSn3Qt8Pz9hGX3tvsh'; // ← remplacer par votre clé API xAI
 
-function switchTab(tab) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('section-' + tab).classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-}
+  let sessionHistory = [];
+  let currentRaw = '';
 
-function setPrompt(text) {
-  document.getElementById('prompt-input').value = text;
-}
-
-function renderMarkdown(text) {
-  return text
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/^---$/gm, '<hr>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
-    .replace(/^\* (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
-}
-
-async function generateRecipe() {
-  const prompt = document.getElementById('prompt-input').value.trim();
-  if (!prompt) return;
-
-  const btn = document.getElementById('btn-cook');
-  const loading = document.getElementById('loading');
-  const output = document.getElementById('recipe-output');
-  const textEl = document.getElementById('recipe-text');
-
-  btn.disabled = true;
-  loading.classList.add('visible');
-  output.classList.remove('visible');
-  textEl.innerHTML = '';
-
-  const systemPrompt = `Tu es un Chef Cuisinier expert en création de serveurs Discord. Tu transformes les idées de serveurs en "Recettes de Cuisine" ultra-claires, structurées et faciles à suivre. 
-
-Pour chaque idée, génère une réponse avec EXACTEMENT cette structure markdown :
-
-# 🍽️ LA RECETTE DU SERVEUR : [Nom suggéré]
-**Description de la formule :** [Une phrase simple qui explique l'ambiance et le but].
-
----
-
-## 🛒 INGRÉDIENTS
-* **Les Rôles principaux :** [Liste des rôles essentiels]
-* **Les Bots requis :** [2-3 bots indispensables]
-
----
-
-## 👩‍🍳 PRÉPARATION ÉTAPE PAR ÉTAPE
-
-### Étape 1 : La Découpe des Salons
-[Structure des catégories et salons avec émojis, format arborescence]
-
-### Étape 2 : Le Mélange des Permissions
-[Qui peut voir/écrire où, expliqué simplement]
-
-### Étape 3 : L'Assaisonnement (Configuration des Bots)
-[2-3 étapes simples de config des bots]
-
-### Étape 4 : Le Dressage de l'Assiette
-[Conseils de finition et d'accueil]
-
----
-
-Sois concis, pratique et utilise des émojis pertinents. Maximum 500 mots.`;
-
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await response.json();
-    const raw = data.content.map(b => b.text || '').join('');
-    textEl.innerHTML = renderMarkdown(raw);
-    output.classList.add('visible');
-
-    history.unshift({ prompt: prompt.slice(0, 50) + (prompt.length > 50 ? '…' : ''), raw, time: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) });
-    updateHistory();
-  } catch(e) {
-    textEl.innerHTML = '<p style="color:var(--color-text-danger)">Une erreur est survenue. Réessayez.</p>';
-    output.classList.add('visible');
+  function setPrompt(text) {
+    document.getElementById('prompt-input').value = text;
+    document.getElementById('prompt-input').focus();
   }
 
-  btn.disabled = false;
-  loading.classList.remove('visible');
-}
+  function resetAll() {
+    document.getElementById('recipe-output').classList.remove('visible');
+    document.getElementById('hero').style.display = '';
+    document.getElementById('prompt-input').value = '';
+    document.getElementById('prompt-input').focus();
+  }
 
-function updateHistory() {
-  const list = document.getElementById('history-list');
-  if (history.length === 0) return;
-  list.innerHTML = history.map((h, i) => `
-    <div class="history-item" onclick="showHistory(${i})">
-      <i class="ti ti-notebook" aria-hidden="true"></i>
-      <div class="history-item-text">${h.prompt}</div>
-      <div class="history-item-time">${h.time}</div>
-    </div>
-  `).join('');
-}
+  function renderMarkdown(text) {
+    return text
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/^---$/gm, '<hr>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      .replace(/^\* (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/gs, m => '<ul>' + m + '</ul>')
+      .replace(/\n\n+/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
 
-function showHistory(i) {
-  const h = history[i];
-  document.getElementById('prompt-input').value = h.prompt;
-  document.getElementById('recipe-text').innerHTML = renderMarkdown(h.raw);
-  document.getElementById('recipe-output').classList.add('visible');
-  switchTab('create');
-}
+  function updateHistory() {
+    const container = document.getElementById('history-container');
+    if (sessionHistory.length === 0) {
+      container.innerHTML = '<div class="history-empty"><i class="ti ti-notebook" aria-hidden="true"></i>Vos recettes apparaîtront ici</div>';
+      return;
+    }
+    container.innerHTML = sessionHistory.map((h, i) => `
+      <div class="history-item" onclick="loadHistory(${i})">
+        <i class="ti ti-notebook" aria-hidden="true"></i>
+        <span class="history-item-text">${h.label}</span>
+        <span class="history-item-time">${h.time}</span>
+      </div>
+    `).join('');
+  }
+
+  function loadHistory(i) {
+    const h = sessionHistory[i];
+    document.getElementById('recipe-text').innerHTML = renderMarkdown(h.raw);
+    document.getElementById('recipe-output').classList.add('visible');
+    document.getElementById('hero').style.display = 'none';
+    currentRaw = h.raw;
+  }
+
+  function copyRecipe() {
+    navigator.clipboard.writeText(currentRaw).then(() => {
+      const btn = document.querySelector('[onclick="copyRecipe()"]');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Copié !';
+      setTimeout(() => btn.innerHTML = orig, 1800);
+    });
+  }
+
+  async function generateRecipe() {
+    const prompt = document.getElementById('prompt-input').value.trim();
+    if (!prompt) {
+      document.getElementById('prompt-input').focus();
+      return;
+    }
+
+    const btn = document.getElementById('btn-cook');
+    const loading = document.getElementById('loading');
+    const output = document.getElementById('recipe-output');
+    const hero = document.getElementById('hero');
+    const textEl = document.getElementById('recipe-text');
+
+    btn.disabled = true;
+    loading.classList.add('visible');
+    output.classList.remove('visible');
+    hero.style.display = 'none';
+    textEl.innerHTML = '';
+
+    const systemPrompt = `Tu es un Chef Cuisinier expert en création de serveurs Discord. Tu transformes les idées de serveurs en "Recettes de Cuisine" ultra-claires.
+
+Génère une réponse avec EXACTEMENT cette structure markdown :
+
+# 🍽️ LA RECETTE DU SERVEUR : [Nom suggéré]
+**Description de la formule :** [Une phrase simple sur l'ambiance et le but].
+
+---
+
+## 🛒 INGRÉDIENTS (Ce qu'il faut préparer)
+* **Les Rôles principaux :** [Liste des rôles essentiels : Admin, Modos, Membres, rôles spéciaux...]
+* **Les Bots requis :** [2-3 bots indispensables avec leur utilité]
+
+---
+
+## 👩‍🍳 PRÉPARATION : ÉTAPE PAR ÉTAPE
+
+### Étape 1 : La Découpe des Salons (L'Arborescence)
+[Donne la structure complète des catégories et salons avec émojis, format arborescence avec ├ et └]
+
+### Étape 2 : Le Mélange des Permissions (La Sécurité)
+[Explique qui peut voir/écrire dans les salons clés, de façon claire et simple]
+
+### Étape 3 : L'Assaisonnement (Configuration des Bots)
+[2-3 étapes simples pour configurer les bots choisis]
+
+### Étape 4 : Le Dressage de l'Assiette (La Finition)
+[3-4 conseils pro pour rendre le serveur accueillant et actif]
+
+---
+
+Sois concis, pratique, utilise des émojis pertinents. Maximum 550 mots. Adapte tout au thème demandé.`;
+
+    try {
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROK_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'grok-3-latest',
+          max_tokens: 1000,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || 'Erreur API');
+      }
+
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content || '';
+      currentRaw = raw;
+
+      textEl.innerHTML = renderMarkdown(raw);
+      output.classList.add('visible');
+
+      sessionHistory.unshift({
+        label: prompt.slice(0, 40) + (prompt.length > 40 ? '…' : ''),
+        raw,
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      });
+      updateHistory();
+
+    } catch (e) {
+      textEl.innerHTML = `<p style="color:#A32D2D; font-size:14px;">
+        <strong>Erreur :</strong> ${e.message}<br><br>
+        Vérifiez que votre clé API xAI (Grok) est correctement configurée dans le fichier HTML
+        (variable <code>GROK_KEY</code>).
+      </p>`;
+      output.classList.add('visible');
+    }
+
+    btn.disabled = false;
+    loading.classList.remove('visible');
+  }
+
+  // Enter pour soumettre
+  document.getElementById('prompt-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) generateRecipe();
+  });
 </script>
+
+</body>
+</html>
