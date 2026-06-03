@@ -39,16 +39,16 @@ Génère une réponse avec EXACTEMENT cette structure markdown :
 
 Sois concis, pratique, utilise des émojis pertinents. Maximum 550 mots. Adapte tout au thème demandé.`;
 
-    console.log("Appel API Grok avec le modèle grok-2-latest...");
+    console.log("Appel API Mistral...");
 
-    const response = await fetch("https://api.x.ai/v1/chat/completions", {
+    const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROK_API_KEY}`,
+        Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "grok-4.3",
+        model: "mistral-small-latest",
         max_tokens: 1000,
         messages: [
           { role: "system", content: systemPrompt },
@@ -64,7 +64,7 @@ Sois concis, pratique, utilise des émojis pertinents. Maximum 550 mots. Adapte 
     if (!response.ok) {
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || "Erreur API Grok" }),
+        body: JSON.stringify({ error: data.message || "Erreur API Mistral" }),
       };
     }
 
