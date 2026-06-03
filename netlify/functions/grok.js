@@ -48,7 +48,7 @@ Sois concis, pratique, utilise des émojis pertinents. Maximum 550 mots. Adapte 
         Authorization: `Bearer ${process.env.GROK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "grok-2-latest",
+        model: "grok-4.3",
         max_tokens: 1000,
         messages: [
           { role: "system", content: systemPrompt },
