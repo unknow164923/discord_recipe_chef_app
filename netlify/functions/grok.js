@@ -3,9 +3,10 @@ exports.handler = async function (event) {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const { prompt } = JSON.parse(event.body);
+  try {
+    const { prompt } = JSON.parse(event.body);
 
-  const systemPrompt = `Tu es un Chef Cuisinier expert en création de serveurs Discord. Tu transformes les idées de serveurs en "Recettes de Cuisine" ultra-claires.
+    const systemPrompt = `Tu es un Chef Cuisinier expert en création de serveurs Discord. Tu transformes les idées de serveurs en "Recettes de Cuisine" ultra-claires.
 
 Génère une réponse avec EXACTEMENT cette structure markdown :
 
@@ -38,35 +39,47 @@ Génère une réponse avec EXACTEMENT cette structure markdown :
 
 Sois concis, pratique, utilise des émojis pertinents. Maximum 550 mots. Adapte tout au thème demandé.`;
 
-  const response = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROK_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "grok-3-latest",
-      max_tokens: 1000,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
+    console.log("Appel API Grok avec le modèle grok-2-latest...");
 
-  const data = await response.json();
+    const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "grok-2-latest",
+        max_tokens: 1000,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
 
-  if (!response.ok) {
+    const data = await response.json();
+    console.log("Statut réponse:", response.status);
+    console.log("Réponse:", JSON.stringify(data).slice(0, 300));
+
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ error: data.error?.message || "Erreur API Grok" }),
+      };
+    }
+
+    const text = data.choices?.[0]?.message?.content || "";
     return {
-      statusCode: response.status,
-      body: JSON.stringify({ error: data.error?.message || "Erreur API Grok" }),
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    };
+
+  } catch (err) {
+    console.log("Erreur catch:", err.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
     };
   }
-
-  const text = data.choices?.[0]?.message?.content || "";
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
-  };
 };
